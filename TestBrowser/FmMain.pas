@@ -234,6 +234,7 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
+  wbTest.Silent:=true;
   fWBW := TWebBrowserWrapper.Create(wbTest);
   {$IFDEF UNICODE}
   Caption := 'Article#14 Demo [Unicode version]';
@@ -261,6 +262,7 @@ begin
   end;
   // Load blank document into test browser
   Wrapper := TWebBrowserWrapper.Create(wbTest);
+
   try
     Wrapper.NavigateToURL('about:blank');
   finally
