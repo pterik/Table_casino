@@ -116,34 +116,23 @@ if MonthCalendar1.Date>Now() then
 DecodeDate(MonthCalendar1.Date, Year, Month, Day);
 SDate:=IntToStr(Year)+'-'+IntToStr(Month)+'-'+IntToStr(Day);
 EOP:=false;
-Memo1.Lines.Add(MySite);
-//IdHttp1.Get(MySite, stream);
-//wbTest.Navigate(SiteTable);
-fWBW.NavigateToURL(SiteTable);
-UpdateStatusBar;
-Sleep(1000);
-//IdHTTP1.Disconnect;
-//WebBrowser1.saveToFile('D:\temp\pterik'+IntToStr(random(9999999))+'.html');
-
-Memo1.Lines.Add(Site);
-
-//IdHttp1.Get(Site, stream);
-Sleep(1000);
-//IdHTTP1.Disconnect;
-//Stream.saveToFile('D:\temp\Site'+IntToStr(random(9999999))+'.html');
+//Memo1.Lines.Add(MySite);
+//fWBW.NavigateToURL(MySite);
+//UpdateStatusBar;
+//Sleep(1000);
+//fWBW.SaveToFile('C:\temp\pterik'+IntToStr(random(9999999))+'.html');
 PageNum:=1;
 while not EOP do
   begin
     PageUrl:=SiteTable+'/'+SDate+'/8/'+IntToStr(PageNum);
     Memo1.Lines.Add(PageUrl);
-
-    //IdHttp1.Get(PageUrl, stream);
+    fWBW.NavigateToURL(PageUrl);
+    UpdateStatusBar;
     Sleep(1000);
-    //IdHTTP1.Disconnect;
-    //Stream.saveToFile('D:\temp\Table'+IntToStr(random(9999999))+'.html');
-    //EOP:=not isPageLoaded(PageUrl);
+    fWBW.SaveToFile('C:\temp\Table'+SDate+'_'+IntToStr(PageNum)+'_'+IntToStr(random(9999999))+'.html');
+    Sleep(1000);
     inc(PageNum);
-    if pageNum =2 then EOP:=true;
+    if pageNum = 20 then EOP:=true;
   end;
 except on E:Exception do
 Memo1.Lines.Add(E.Message);
