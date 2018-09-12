@@ -15,6 +15,7 @@ const
   Site='https://betgames9.betgames.tv/';
   SiteTable='https://betgames9.betgames.tv/ext/game/results/testpartner';
   MySite='http://pterik.com/';
+  Stop_Signature = 'No results.';
 
 type
   TMainForm = class(TForm)
@@ -24,16 +25,15 @@ type
     MonthCalendar1: TMonthCalendar;
     wbTest: TWebBrowser;
     sbMain: TStatusBar;
-    BitBtnSave: TBitBtn;
     dlgOpen: TOpenDialog;
     dlgSave: TSaveDialog;
+    MemoHtml: TMemo;
     procedure BitBtn1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure IdHTTP1Redirect(Sender: TObject; var dest: string;
       var NumRedirect: Integer; var Handled: Boolean; var VMethod: string);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure BitBtnSaveClick(Sender: TObject);
   private
     fWBW: TWebBrowserWrapper;
     function IsPageLoaded(const Url: string): boolean;
@@ -101,6 +101,7 @@ PageNum:integer;
 Year, Month, Day: Word;
 Sdate:string;
 PageUrl:string;
+SnapshotFolder:string;
 stream: TMemoryStream;
 begin
 try
@@ -114,25 +115,35 @@ if MonthCalendar1.Date>Now() then
   exit;
   end;
 DecodeDate(MonthCalendar1.Date, Year, Month, Day);
-SDate:=IntToStr(Year)+'-'+IntToStr(Month)+'-'+IntToStr(Day);
+SDate:=IntToStr(Year);
+if Month>=10
+  then SDate:=SDate+'-'+IntToStr(Month)
+  else SDate:=SDate+'-0'+IntToStr(Month);
+if Day>=10
+  then SDate:=SDate+'-'+IntToStr(Day)
+  else SDate:=SDate+'-0'+IntToStr(Day);
 EOP:=false;
-//Memo1.Lines.Add(MySite);
-//fWBW.NavigateToURL(MySite);
-//UpdateStatusBar;
-//Sleep(1000);
-//fWBW.SaveToFile('C:\temp\pterik'+IntToStr(random(9999999))+'.html');
 PageNum:=1;
+SnapshotFolder:=ExtractFilePath(Application.ExeName)+'\Snapshot\'+SDate;
+if not DirectoryExists(SnapshotFolder) then  CreateDir(SnapshotFolder);
+Memo1.Lines.Add('Snapshot='+SnapshotFolder);
 while not EOP do
   begin
-    PageUrl:=SiteTable+'/'+SDate+'/8/'+IntToStr(PageNum);
+    if pageNum = 3 then EOP:=true;
+    PageUrl:=SiteTable+'/'+SDate+'/8/'+IntToStr(PageNum)+'/';
     Memo1.Lines.Add(PageUrl);
     fWBW.NavigateToURL(PageUrl);
     UpdateStatusBar;
     Sleep(1000);
-    fWBW.SaveToFile('C:\temp\Table'+SDate+'_'+IntToStr(PageNum)+'_'+IntToStr(random(9999999))+'.html');
-    Sleep(1000);
+    MemoHtml.Clear;
+    MemoHtml.Text := fWBW.SaveToString;
+    if Pos(Stop_Signature,MemoHtml.Text)>0 then
+      begin
+       Memo1.Lines.Add(Stop_Signature+' pos.'+IntToStr(Pos(Stop_Signature,MemoHtml.Text)));
+       //EOP:=true;
+      end;
+    If EOP=false then fWBW.SaveToFile(SnapshotFolder+'\'+IntToStr(PageNum)+'_'+IntToStr(random(9999999))+'.html');
     inc(PageNum);
-    if pageNum = 20 then EOP:=true;
   end;
 except on E:Exception do
 Memo1.Lines.Add(E.Message);
@@ -142,26 +153,11 @@ stream.Free;
 end;
 end;
 
-procedure TMainForm.BitBtnSaveClick(Sender: TObject);
-begin
-  if dlgSave.Execute then
-  begin
-//    {$IFDEF UNICODE}
-//    if Assigned(SaveEncodingDlg.Encoding) then
-//      fWBW.SaveToFile(dlgSave.FileName, SaveEncodingDlg.Encoding)
-//    else
-//      fWBW.SaveToFile(dlgSave.FileName);
-//    {$ELSE}
-    fWBW.SaveToFile(dlgSave.FileName);
-//    {$ENDIF}
-  end;
-end;
-
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
 MonthCalendar1.Date:=Now()-30;
 MonthCalendar1.MaxDate:=Now();
-wbTest.Silent:=true;
+//wbTest.Silent:=true;
 fWBW := TWebBrowserWrapper.Create(wbTest);
 TEncoding.Default;
 end;
